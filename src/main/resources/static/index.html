@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evento Bharat - Premier Event Ticketing Engine</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #090d16;
+            --card-bg: #111827;
+            --accent-purple: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --text-primary: #f8fafc;
+        }
+        body { 
+            background-color: var(--bg-color); 
+            color: var(--text-primary); 
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+        }
+        .navbar {
+            background-color: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #1e293b;
+        }
+        .hero-banner {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.15));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+        }
+        .screen-curved { 
+            background: linear-gradient(180deg, var(--accent-cyan), transparent); 
+            height: 12px; 
+            width: 80%; 
+            margin: 0 auto 35px; 
+            border-radius: 8px; 
+            box-shadow: 0 0 25px var(--accent-cyan); 
+        }
+        .seat { 
+            width: 44px; 
+            height: 44px; 
+            margin: 6px; 
+            border-radius: 10px; 
+            font-weight: 700; 
+            font-size: 12px; 
+            border: none; 
+            cursor: pointer; 
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); 
+        }
+        .seat-available { background-color: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+        .seat-available:hover { background-color: #334155; transform: translateY(-3px) scale(1.05); color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+        .seat-selected { background: linear-gradient(135deg, #8b5cf6, #06b6d4) !important; color: white; transform: scale(1.1); box-shadow: 0 0 15px #8b5cf6; }
+        .seat-held { background-color: #f59e0b !important; color: #0f172a; cursor: not-allowed; opacity: 0.85; }
+        .seat-booked { background-color: #ef4444 !important; color: white; cursor: not-allowed; opacity: 0.4; }
+        .glass-card { 
+            background: #111827; 
+            border: 1px solid #1e293b; 
+            border-radius: 20px; 
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .form-control, .form-select {
+            background-color: #1e293b;
+            border: 1px solid #334155;
+            color: #f8fafc;
+            border-radius: 10px;
+            padding: 10px 14px;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #1e293b;
+            color: #fff;
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 0 0.25rem rgba(139, 92, 246, 0.25);
+        }
+        .timer-pill {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 700;
+            box-shadow: 0 0 12px rgba(220, 38, 38, 0.4);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, #8b5cf6, #6366f1);
+            color: white;
+            border: none;
+            font-weight: 700;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+        .btn-gradient:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+            color: white;
+        }
+        .payment-option {
+            border: 2px solid #334155;
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .payment-option:hover, .payment-option.active {
+            border-color: #06b6d4;
+            background-color: rgba(6, 182, 212, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <nav class="navbar navbar-dark sticky-top mb-4 py-3">
+        <div class="container d-flex justify-content-between align-items-center">
+            <span class="navbar-brand fw-extrabold fs-4 d-flex align-items-center gap-2">
+                <span style="font-size: 1.6rem;">🎟️</span> Evento Bharat
+            </span>
+            <span id="timer" class="timer-pill" style="display:none;">⏳ Hold Expires: 05:00</span>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        
+        <!-- Hero Header -->
+        <div class="hero-banner p-4 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+            <div>
+                <h3 class="fw-bold mb-1">Live Concert & Ticket Engine</h3>
+                <p class="text-secondary small mb-0">Powered by Atomic Concurrency Locks & QR Pass Generation</p>
+            </div>
+            <button class="btn btn-gradient px-4 py-2" onclick="seedSampleEvent()">+ Seed Indian Concert Event</button>
+        </div>
+
+        <div class="row g-4">
+            
+            <!-- Left: Interactive Seating Map -->
+            <div class="col-12 col-lg-7">
+                <div class="glass-card p-4 text-center">
+                    <span class="badge bg-dark border border-secondary text-light px-3 py-2 rounded-pill mb-3">STAGE / MAIN SCREEN</span>
+                    <div class="screen-curved"></div>
+                    
+                    <div id="seatGrid" class="mb-4 d-flex flex-wrap justify-content-center">
+                        <p class="text-secondary my-5">Choose an event from the right or click '+ Seed Indian Concert Event'...</p>
+                    </div>
+
+                    <!-- Seat Legend -->
+                    <div class="d-flex flex-wrap justify-content-center gap-4 pt-3 border-top border-secondary small text-secondary">
+                        <span class="d-flex align-items-center gap-2"><span class="seat seat-available d-inline-block" style="width:16px;height:16px;"></span> Available</span>
+                        <span class="d-flex align-items-center gap-2"><span class="seat seat-selected d-inline-block" style="width:16px;height:16px;"></span> Selected</span>
+                        <span class="d-flex align-items-center gap-2"><span class="seat seat-held d-inline-block" style="width:16px;height:16px;"></span> Held (5m)</span>
+                        <span class="d-flex align-items-center gap-2"><span class="seat seat-booked d-inline-block" style="width:16px;height:16px;"></span> Booked</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Event Info & Checkout -->
+            <div class="col-12 col-lg-5">
+                <div class="glass-card p-4 mb-4">
+                    <h5 class="fw-bold mb-3">1. Select Live Show</h5>
+                    <select id="eventSelect" class="form-select mb-2" onchange="loadEventDetails()">
+                        <option value="" disabled selected>Loading events...</option>
+                    </select>
+                    <div id="eventInfo" class="text-secondary small mt-2"></div>
+                </div>
+
+                <div class="glass-card p-4">
+                    <h5 class="fw-bold mb-3">2. Attendee Pass Details</h5>
+                    <div class="mb-2">
+                        <label class="form-label text-secondary small mb-1">Full Name</label>
+                        <input type="text" id="userId" class="form-control" value="Aarav Sharma">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-secondary small mb-1">Email ID</label>
+                        <input type="email" id="userEmail" class="form-control" value="aarav.sharma@example.in">
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3 p-3 rounded" style="background-color: #1e293b; border: 1px solid #334155;">
+                        <span class="fw-bold">Total Amount:</span>
+                        <span id="totalPrice" class="fs-4 fw-bold text-info">₹0</span>
+                    </div>
+
+                    <button id="holdBtn" class="btn btn-warning w-100 fw-bold mb-2 py-2" onclick="holdSeats()">🔒 Hold Seats (5 Mins Lock)</button>
+                    <button id="payModalBtn" class="btn btn-success w-100 fw-bold py-2" onclick="openPaymentGateway()" disabled>💳 Pay via Razorpay / UPI</button>
+                    <div id="statusAlert" class="mt-3"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Razorpay / UPI Payment Gateway Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="glass-card modal-content p-4 text-light">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">⚡ Razorpay Checkout Portal</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <p class="text-secondary small mb-3">Select your preferred Indian payment method:</p>
+                
+                <div class="d-flex flex-column gap-2 mb-4">
+                    <div class="payment-option active d-flex justify-content-between align-items-center" onclick="selectPayOption(this)">
+                        <span>📲 Google Pay / PhonePe / Paytm UPI</span>
+                        <span class="badge bg-success">Instant</span>
+                    </div>
+                    <div class="payment-option d-flex justify-content-between align-items-center" onclick="selectPayOption(this)">
+                        <span>💳 Credit / Debit Card (Visa/Mastercard)</span>
+                    </div>
+                    <div class="payment-option d-flex justify-content-between align-items-center" onclick="selectPayOption(this)">
+                        <span>🏦 NetBanking (HDFC / SBI / ICICI)</span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-dark rounded text-secondary small">
+                    <span>Payable Amount:</span>
+                    <strong id="modalPayableAmount" class="text-success fs-5">₹0</strong>
+                </div>
+
+                <button class="btn btn-gradient w-100 py-2 fs-6" onclick="confirmBooking()">Complete Payment & Get Pass</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmed Pass Modal -->
+    <div class="modal fade" id="ticketModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="glass-card modal-content p-4 text-center text-light border-success">
+                <h4 class="text-success fw-bold mb-1">🎉 Ticket Confirmed!</h4>
+                <p id="ticketEvent" class="text-secondary small mb-3"></p>
+                
+                <div class="bg-white p-3 rounded d-inline-block mx-auto mb-3">
+                    <img id="qrCodeImg" src="" alt="QR Pass" style="width: 200px; height: 200px;">
+                </div>
+                
+                <p id="ticketSeats" class="fw-bold fs-5 text-info mb-1"></p>
+                <p id="ticketId" class="small text-secondary mb-3"></p>
+                
+                <button class="btn btn-primary w-100 fw-bold" data-bs-dismiss="modal">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const BACKEND_URL = window.location.origin;
+        let selectedSeats = [];
+        let currentEvent = null;
+
+        async function loadEvents() {
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/events`);
+                const events = await res.json();
+                const select = document.getElementById('eventSelect');
+                
+                if (!events || events.length === 0) {
+                    select.innerHTML = `<option disabled selected>No events active. Click '+ Seed Indian Concert Event'!</option>`;
+                    return;
+                }
+
+                select.innerHTML = `<option value="" disabled selected>-- Select Concert Show --</option>`;
+                events.forEach(ev => {
+                    select.innerHTML += `<option value="${ev.id}">${ev.title}</option>`;
+                });
+            } catch (err) {
+                console.error("Error loading events:", err);
+            }
+        }
+
+        async function seedSampleEvent() {
+            const sample = { 
+                title: "Arijit Singh Live in Mumbai", 
+                venue: "D.Y. Patil Stadium, Navi Mumbai", 
+                date: "15 Oct 2026" 
+            };
+            
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/events`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(sample)
+                });
+                
+                if (res.ok) {
+                    alert("Arijit Singh Concert Event Created!");
+                    await loadEvents();
+                } else {
+                    alert("Server Error seeding event. Check terminal logs.");
+                }
+            } catch (err) {
+                alert("Connection error: " + err.message);
+            }
+        }
+
+        async function loadEventDetails() {
+            const eventId = document.getElementById('eventSelect').value;
+            const res = await fetch(`${BACKEND_URL}/api/events/${eventId}`);
+            currentEvent = await res.json();
+            selectedSeats = [];
+            document.getElementById('payModalBtn').disabled = true;
+
+            document.getElementById('eventInfo').innerHTML = `
+                📍 Venue: <strong>${currentEvent.venue}</strong><br>
+                📅 Date: <strong>${currentEvent.date}</strong>
+            `;
+
+            renderGrid();
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('seatGrid');
+            grid.innerHTML = "";
+            let currentUserId = document.getElementById('userId').value;
+
+            currentEvent.seats.forEach(seat => {
+                const btn = document.createElement('button');
+                let cssClass = "seat-available";
+
+                if (seat.status === "BOOKED") cssClass = "seat-booked";
+                else if (seat.status === "HELD") cssClass = "seat-held";
+                else if (selectedSeats.includes(seat.seatId)) cssClass = "seat-selected";
+
+                btn.className = `seat ${cssClass}`;
+                btn.innerText = seat.seatId;
+
+                if (seat.status === "AVAILABLE" || (seat.status === "HELD" && seat.heldByUserId === currentUserId)) {
+                    btn.onclick = () => toggleSeat(seat.seatId);
+                } else {
+                    btn.disabled = true;
+                }
+
+                grid.appendChild(btn);
+            });
+
+            calculateTotal();
+        }
+
+        function toggleSeat(seatId) {
+            selectedSeats = selectedSeats.includes(seatId) 
+                ? selectedSeats.filter(id => id !== seatId) 
+                : [...selectedSeats, seatId];
+            renderGrid();
+        }
+
+        function calculateTotal() {
+            let total = 0;
+            currentEvent.seats.forEach(seat => {
+                let seatPrice = (seat.seatRow === 'A' || seat.seatRow === 'B') ? 2500 : 1200;
+                if (selectedSeats.includes(seat.seatId)) total += seatPrice;
+            });
+            const formatted = `₹${total.toLocaleString('en-IN')}`;
+            document.getElementById('totalPrice').innerText = formatted;
+            document.getElementById('modalPayableAmount').innerText = formatted;
+        }
+
+        async function holdSeats() {
+            const userId = document.getElementById('userId').value;
+            if (selectedSeats.length === 0) return alert("Select at least one seat first!");
+
+            const res = await fetch(`${BACKEND_URL}/api/reservations/hold`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ eventId: currentEvent.id, userId: userId, seatIds: selectedSeats })
+            });
+
+            const result = await res.text();
+            if (res.ok) {
+                document.getElementById('statusAlert').innerHTML = `<div class="alert alert-success py-2">Seats locked for 5 minutes!</div>`;
+                document.getElementById('payModalBtn').disabled = false;
+                loadEventDetails();
+            } else {
+                document.getElementById('statusAlert').innerHTML = `<div class="alert alert-danger py-2">${result}</div>`;
+            }
+        }
+
+        function openPaymentGateway() {
+            new bootstrap.Modal(document.getElementById('paymentModal')).show();
+        }
+
+        function selectPayOption(el) {
+            document.querySelectorAll('.payment-option').forEach(opt => opt.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        async function confirmBooking() {
+            bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
+            
+            const userId = document.getElementById('userId').value;
+            const email = document.getElementById('userEmail').value;
+
+            const res = await fetch(`${BACKEND_URL}/api/reservations/confirm`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ eventId: currentEvent.id, userId: userId, userEmail: email, seatIds: selectedSeats })
+            });
+
+            if (res.ok) {
+                const booking = await res.json();
+                document.getElementById('qrCodeImg').src = booking.qrCodeBase64;
+                document.getElementById('ticketEvent').innerText = booking.eventTitle;
+                document.getElementById('ticketSeats').innerText = `Seats: ${booking.seatIds.join(', ')}`;
+                document.getElementById('ticketId').innerText = `Booking Pass ID: ${booking.bookingId}`;
+                
+                new bootstrap.Modal(document.getElementById('ticketModal')).show();
+                loadEventDetails();
+            } else {
+                const err = await res.text();
+                document.getElementById('statusAlert').innerHTML = `<div class="alert alert-danger py-2">${err}</div>`;
+            }
+        }
+
+        window.onload = loadEvents;
+    </script>
+</body>
+</html>
