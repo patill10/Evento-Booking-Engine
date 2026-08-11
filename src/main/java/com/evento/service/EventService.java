@@ -18,6 +18,7 @@ public class EventService {
             event.setId(UUID.randomUUID().toString());
         }
 
+        // Generate 30 seats if empty
         if (event.getSeats() == null || event.getSeats().isEmpty()) {
             List<Seat> generatedSeats = new ArrayList<>();
             String[] rows = {"A", "B", "C", "D", "E"};
@@ -31,8 +32,31 @@ public class EventService {
             event.setSeats(generatedSeats);
         }
 
-        db.collection("events").document(event.getId()).set(event).get();
-        System.out.println("🔥 New Event successfully created: " + event.getTitle());
+        // Convert Event object to Map to ensure error-free Firestore serialization
+        Map<String, Object> eventMap = new HashMap<>();
+        eventMap.put("id", event.getId());
+        eventMap.put("title", event.getTitle());
+        eventMap.put("venue", event.getVenue());
+        eventMap.put("date", event.getDate());
+
+        List<Map<String, Object>> seatListMap = new ArrayList<>();
+        for (Seat seat : event.getSeats()) {
+            Map<String, Object> sMap = new HashMap<>();
+            sMap.put("seatId", seat.getSeatId());
+            sMap.put("seatRow", seat.getSeatRow());
+            sMap.put("seatNumber", seat.getSeatNumber());
+            sMap.put("price", seat.getPrice());
+            sMap.put("status", seat.getStatus());
+            sMap.put("heldByUserId", seat.getHeldByUserId());
+            sMap.put("holdExpirationTime", seat.getHoldExpirationTime());
+            seatListMap.add(sMap);
+        }
+        eventMap.put("seats", seatListMap);
+
+        // Write map to Firestore
+        db.collection("events").document(event.getId()).set(eventMap).get();
+        System.out.println("🔥 Event created in Firestore with ID: " + event.getId());
+        
         return event.getId();
     }
 
