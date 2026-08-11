@@ -1,9 +1,9 @@
-package evento.service;
+package com.evento.service;
 
 import com.google.cloud.firestore.*;
 import com.google.firebase.cloud.FirestoreClient;
-import evento.model.Event;
-import evento.model.Seat;
+import com.evento.model.Event;
+import com.evento.model.Seat;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -18,7 +18,6 @@ public class EventService {
             event.setId(UUID.randomUUID().toString());
         }
 
-        // Generate default 30-seat grid if seats list is empty
         if (event.getSeats() == null || event.getSeats().isEmpty()) {
             List<Seat> generatedSeats = new ArrayList<>();
             String[] rows = {"A", "B", "C", "D", "E"};
@@ -32,7 +31,6 @@ public class EventService {
             event.setSeats(generatedSeats);
         }
 
-        // Save to Firestore asynchronously and wait for result
         db.collection("events").document(event.getId()).set(event).get();
         System.out.println("🔥 New Event successfully created: " + event.getTitle());
         return event.getId();

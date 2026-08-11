@@ -1,9 +1,9 @@
-package evento;
+package com.evento;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication(scanBasePackages = {"evento", "com.evento"})
+@SpringBootApplication
 public class EventoApplication {
     public static void main(String[] args) {
         SpringApplication.run(EventoApplication.class, args);
