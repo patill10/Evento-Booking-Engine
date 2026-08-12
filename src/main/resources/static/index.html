@@ -279,7 +279,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const BACKEND_URL = window.location.origin;
         let selectedSeats = [];
@@ -318,11 +318,15 @@
             }
         }
 
-        async function selectEvent(eventId) {
+        async function selectEvent(eventId, keepSelection = false) {
             const res = await fetch(`${BACKEND_URL}/api/events/${eventId}`);
             currentEvent = await res.json();
-            selectedSeats = [];
-            document.getElementById('payModalBtn').disabled = true;
+            
+            if (!keepSelection) {
+                selectedSeats = [];
+                document.getElementById('payModalBtn').disabled = true;
+            }
+
             loadEvents();
             renderGrid();
         }
@@ -402,6 +406,10 @@
             selectedSeats = selectedSeats.includes(seatId) 
                 ? selectedSeats.filter(id => id !== seatId) 
                 : [...selectedSeats, seatId];
+            
+            if (selectedSeats.length === 0) {
+                document.getElementById('payModalBtn').disabled = true;
+            }
             renderGrid();
         }
 
@@ -430,13 +438,15 @@
             if (res.ok) {
                 showToast("Seats locked for 5 minutes!", "success");
                 document.getElementById('payModalBtn').disabled = false;
-                selectEvent(currentEvent.id);
+                // Fetch latest seat state while retaining selectedSeats
+                await selectEvent(currentEvent.id, true);
             } else {
                 showToast(result, "danger");
             }
         }
 
         function openPaymentGateway() {
+            if (selectedSeats.length === 0) return showToast("No seats selected!", "warning");
             new bootstrap.Modal(document.getElementById('paymentModal')).show();
         }
 
@@ -451,10 +461,21 @@
             const userId = document.getElementById('userId').value;
             const email = document.getElementById('userEmail').value;
 
+            if (!selectedSeats || selectedSeats.length === 0) {
+                return showToast("Seat selection lost. Please select seats again.", "danger");
+            }
+
+            const payload = {
+                eventId: currentEvent.id,
+                userId: userId,
+                userEmail: email,
+                seatIds: selectedSeats
+            };
+
             const res = await fetch(`${BACKEND_URL}/api/reservations/confirm`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ eventId: currentEvent.id, userId: userId, userEmail: email, seatIds: selectedSeats })
+                body: JSON.stringify(payload)
             });
 
             if (res.ok) {
@@ -465,6 +486,8 @@
                 document.getElementById('ticketId').innerText = `Booking Pass ID: ${booking.bookingId}`;
                 
                 new bootstrap.Modal(document.getElementById('ticketModal')).show();
+                selectedSeats = [];
+                document.getElementById('payModalBtn').disabled = true;
                 selectEvent(currentEvent.id);
             } else {
                 const err = await res.text();
